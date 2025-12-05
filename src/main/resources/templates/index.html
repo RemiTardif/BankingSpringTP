@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking App - Clients</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+<main class="container">
+    <nav>
+        <ul>
+            <li><strong>Banking App</strong></li>
+        </ul>
+        <ul id="nav-buttons">
+        </ul>
+    </nav>
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="/stocks" role="button" class="outline">Voir les cours de bourse</a>
+    </div>
+
+    <hgroup>
+        <h1>Liste des clients</h1>
+        <p>Gestion des clients bancaires</p>
+    </hgroup>
+
+    <!-- Message si NON connecté -->
+    <article id="not-logged-message" style="display: none; text-align: center;">
+        <p style="color: var(--pico-muted-color); font-size: 1.2rem;">
+            🔒 Vous devez être connecté pour voir la liste des clients
+        </p>
+        <div style="margin-top: 2rem;">
+            <a href="/login" role="button">Se connecter</a>
+            <a href="/register" role="button" class="outline" style="margin-left: 1rem;">S'inscrire</a>
+        </div>
+    </article>
+
+    <!-- Contenu visible seulement si connecté) -->
+    <div id="protected-content" style="display: none;">
+        <!-- Message si aucun client -->
+        <article th:if="${clients.isEmpty()}">
+            <p style="text-align: center; color: var(--pico-muted-color);">
+                Aucun client enregistré pour le moment.
+            </p>
+        </article>
+
+        <!-- Table des clients -->
+        <figure th:if="${!clients.isEmpty()}">
+            <table role="grid">
+                <thead>
+                <tr>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Prénom</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="client : ${clients}">
+                    <td th:text="${client.lastName}">Dupont</td>
+                    <td th:text="${client.firstName}">Jean</td>
+                    <td>
+                        <a th:href="@{/clients/{id}(id=${client.id})}" role="button">
+                            Voir les comptes
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </figure>
+    </div>
+</main>
+
+<script>
+    // Vérifie si un token JWT est présent dans localStorage
+    const token = localStorage.getItem('jwt_token');
+    const navButtons = document.getElementById('nav-buttons');
+    const notLoggedMessage = document.getElementById('not-logged-message');
+    const protectedContent = document.getElementById('protected-content');
+
+    if (token) {
+        //Utilisateur CONNECTÉ
+
+        navButtons.innerHTML = `
+                <li><span style="color: var(--pico-primary);">✓ Connecté</span></li>
+                <li><a href="#" onclick="logout(); return false;" role="button" class="secondary">Déconnexion</a></li>
+            `;
+        protectedContent.style.display = 'block';
+        notLoggedMessage.style.display = 'none';
+
+    } else {
+        //Utilisateur NON CONNECTÉ
+
+        navButtons.innerHTML = `
+                <li><a href="/login" role="button">Se connecter</a></li>
+                <li><a href="/register" role="button" class="outline">S'inscrire</a></li>
+            `;
+
+        // Affiche le message "Vous devez être connecté"
+        notLoggedMessage.style.display = 'block';
+        protectedContent.style.display = 'none';
+    }
+
+    //Fonction Déco
+    function logout() {
+        // Supprime le token JWT du localStorage
+        localStorage.removeItem('jwt_token');
+
+        // Affiche un message
+        alert('Vous êtes déconnecté !');
+
+        // Recharge la page
+        window.location.href = '/';
+    }
+</script>
+</body>
+</html>

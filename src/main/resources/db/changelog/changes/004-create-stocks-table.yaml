@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-stocks-table
+      author: ton_nom
+      changes:
+        - createTable:
+            tableName: stocks
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: symbol
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_update
+                  type: BIGINT
+                  constraints:
+                    nullable: false

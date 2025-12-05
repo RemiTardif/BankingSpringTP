@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Banking App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+<main class="container">
+    <article style="max-width: 500px; margin: 50px auto;">
+        <hgroup>
+            <h1>Connexion</h1>
+            <p>Connectez-vous à votre compte</p>
+        </hgroup>
+
+        <!-- Message d'erreur -->
+        <div id="error-message" style="display: none; background-color: var(--pico-del-color); padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <p id="error-text" style="margin: 0;"></p>
+        </div>
+
+        <!-- Message de succès -->
+        <div id="success-message" style="display: none; background-color: var(--pico-ins-color); padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <p id="success-text" style="margin: 0;"></p>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form id="login-form">
+            <label>
+                Login
+                <input
+                        type="text"
+                        id="login"
+                        name="login"
+                        placeholder="john.doe"
+                        required
+                        autocomplete="username">
+            </label>
+
+            <label>
+                Mot de passe
+                <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password">
+            </label>
+
+            <button type="submit" id="submit-btn">
+                Se connecter
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 1rem;">
+            Pas encore de compte ?
+            <a href="/register">Créer un compte</a>
+        </p>
+
+        <p style="text-align: center; margin-top: 0.5rem;">
+            <a href="/" role="button" class="outline">← Retour à l'accueil</a>
+        </p>
+    </article>
+</main>
+
+<script>
+    const loginForm = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const successMessage = document.getElementById('success-message');
+    const successText = document.getElementById('success-text');
+
+    // Soumet le formulaire de connexion
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Désactive le bouton pendant la requête
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.textContent = 'Connexion...';
+
+        // Cache les messages
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+
+        // Récupère les données du formulaire
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            // Appel API /auth/login
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ login, password })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erreur lors de la connexion');
+            }
+
+            // Récupère le token JWT
+            const data = await response.json();
+            const token = data.token;
+
+            // Stocke le token dans localStorage
+            localStorage.setItem('jwt_token', token);
+
+            // Affiche message de succès
+            successText.textContent = 'Connexion réussie ! Redirection...';
+            successMessage.style.display = 'block';
+
+            // Redirige vers la page d'accueil après 1 seconde
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+
+        } catch (error) {
+            // Affiche l'erreur
+            errorText.textContent = error.message;
+            errorMessage.style.display = 'block';
+
+            // Réactive le bouton
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = 'Se connecter';
+        }
+    });
+</script>
+</body>
+</html>

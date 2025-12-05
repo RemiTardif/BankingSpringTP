@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking App - Cours de Bourse</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script th:src="@{/js/stocks.js}"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<main class="container" x-data="stocksData()">
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><strong>Banking App</strong></li>
+        </ul>
+        <ul id="nav-buttons">
+        </ul>
+    </nav>
+
+    <hgroup>
+        <h1>Cours de Bourse</h1>
+        <p>Suivi des actions en temps réel</p>
+    </hgroup>
+
+    <!-- Bouton retour -->
+    <a href="/" role="button" class="outline" style="margin-bottom: 2rem;">← Retour à l'accueil</a>
+
+    <!-- Message de chargement -->
+    <article x-show="loading" aria-busy="true">
+        Chargement des cours de bourse...
+    </article>
+
+    <!-- Message d'erreur -->
+    <article x-show="error" style="background-color: var(--pico-del-color);">
+        <p x-text="error"></p>
+    </article>
+
+    <!-- Contenu principal -->
+    <div x-show="!loading && !error">
+
+        <!-- Formulaire d'ajout d'action -->
+        <article>
+            <h2>Ajouter une nouvelle action</h2>
+            <form @submit.prevent="createStock()">
+                <div class="grid">
+                    <label>
+                        Symbole boursier
+                        <input
+                                type="text"
+                                x-model="newStock.symbol"
+                                required
+                                placeholder="AAPL"
+                                :disabled="creating"
+                                maxlength="10"
+                                style="text-transform: uppercase;">
+                        <small>Ticker boursier (ex: AAPL, GOOGL, MSFT)</small>
+                    </label>
+
+                    <label>
+                        Nom de l'entreprise
+                        <input
+                                type="text"
+                                x-model="newStock.name"
+                                required
+                                placeholder="Apple Inc."
+                                :disabled="creating">
+                    </label>
+                </div>
+
+                <label>
+                    Prix (€)
+                    <input
+                            type="number"
+                            x-model="newStock.price"
+                            step="0.01"
+                            min="0.01"
+                            required
+                            placeholder="150.50"
+                            :disabled="creating">
+                </label>
+
+                <button type="submit" :disabled="creating" :aria-busy="creating">
+                    <span x-show="!creating">➕ Ajouter l'action</span>
+                    <span x-show="creating">Ajout en cours...</span>
+                </button>
+            </form>
+        </article>
+
+        <!-- Liste des actions -->
+        <article>
+            <h2>Actions disponibles</h2>
+
+            <!-- Si aucune action -->
+            <p x-show="stocks.length === 0" style="text-align: center; color: var(--pico-muted-color);">
+                Aucune action enregistrée. Ajoutez-en une ci-dessus !
+            </p>
+
+            <!-- Table des actions -->
+            <figure x-show="stocks.length > 0">
+                <table role="grid">
+                    <thead>
+                    <tr>
+                        <th scope="col">Symbole</th>
+                        <th scope="col">Entreprise</th>
+                        <th scope="col">Prix (€)</th>
+                        <th scope="col">Dernière MAJ</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template x-for="stock in stocks" :key="stock.id">
+                        <tr>
+                            <td>
+                                <strong x-text="stock.symbol" style="font-size: 1.1rem; color: var(--pico-primary);"></strong>
+                            </td>
+                            <td x-text="stock.name"></td>
+                            <td>
+                                <strong x-text="formatPrice(stock.price)" style="font-size: 1.1rem;"></strong>
+                            </td>
+                            <td x-text="formatDate(stock.lastUpdate)" style="color: var(--pico-muted-color); font-size: 0.9rem;"></td>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+            </figure>
+        </article>
+    </div>
+</main>
+
+<script>
+    // Gestion de la navigation (connecté/non connecté)
+    const token = localStorage.getItem('jwt_token');
+    const navButtons = document.getElementById('nav-buttons');
+
+    if (token) {
+        navButtons.innerHTML = `
+                <li><span style="color: var(--pico-primary);">✓ Connecté</span></li>
+                   <li><a href="#" onclick="logout(); return false;" role="button" class="secondary">Déconnexion</a></li>
+            `;
+    } else {
+        navButtons.innerHTML = `
+                <li><a href="/login" role="button">Se connecter</a></li>
+                <li><a href="/register" role="button" class="outline">S'inscrire</a></li>
+            `;
+    }
+
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        alert('Vous êtes déconnecté !');
+        window.location.href = '/';
+    }
+</script>
+</body>
+</html>

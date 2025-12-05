@@ -1,0 +1,32 @@
+services:
+  database:
+    image: postgres:15.2
+    container_name: banking-database
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+
+  adminer:
+    image: adminer
+    container_name: banking-adminer
+    restart: always
+    ports:
+      - "8088:8080"
+    depends_on:
+      - database
+    networks:
+      - banking-network
+
+volumes:
+  postgres-data:
+
+networks:
+  banking-network:
+    driver: bridge

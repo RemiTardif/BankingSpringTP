@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Banking App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+<main class="container">
+    <article style="max-width: 500px; margin: 50px auto;">
+        <hgroup>
+            <h1>Inscription</h1>
+            <p>Créez votre compte bancaire</p>
+        </hgroup>
+
+        <!-- Message d'erreur -->
+        <div id="error-message" style="display: none; background-color: var(--pico-del-color); padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <p id="error-text" style="margin: 0;"></p>
+        </div>
+
+        <!-- Message de succès -->
+        <div id="success-message" style="display: none; background-color: var(--pico-ins-color); padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <p id="success-text" style="margin: 0;"></p>
+        </div>
+
+        <!-- Étape 1 : Choisir ou créer un client -->
+        <div id="step-client">
+            <h3>Étape 1 : Client</h3>
+
+            <label>
+                <input
+                        type="radio"
+                        name="client-choice"
+                        value="existing"
+                        id="radio-existing"
+                        checked>
+                Associer à un client existant
+            </label>
+
+            <div id="existing-client-form" style="margin-left: 2rem;">
+                <label>
+                    ID du client
+                    <input
+                            type="text"
+                            id="existing-client-id"
+                            placeholder="01KB2668Y8X9F4J48Y5E3M5EY8">
+                </label>
+            </div>
+
+            <label>
+                <input
+                        type="radio"
+                        name="client-choice"
+                        value="new"
+                        id="radio-new">
+                Créer un nouveau client
+            </label>
+
+            <div id="new-client-form" style="margin-left: 2rem; display: none;">
+                <label>
+                    Prénom
+                    <input
+                            type="text"
+                            id="new-client-firstname"
+                            placeholder="John">
+                </label>
+                <label>
+                    Nom
+                    <input
+                            type="text"
+                            id="new-client-lastname"
+                            placeholder="Doe">
+                </label>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Étape 2 : Créer le compte utilisateur -->
+        <div id="step-user">
+            <h3>Étape 2 : Compte utilisateur</h3>
+
+            <label>
+                Login
+                <input
+                        type="text"
+                        id="login"
+                        placeholder="john.doe"
+                        required
+                        autocomplete="username">
+            </label>
+
+            <label>
+                Mot de passe
+                <input
+                        type="password"
+                        id="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="new-password">
+            </label>
+
+            <label>
+                Confirmer le mot de passe
+                <input
+                        type="password"
+                        id="password-confirm"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="new-password">
+            </label>
+        </div>
+
+        <button id="submit-btn" onclick="handleRegister()">
+            Créer mon compte
+        </button>
+
+        <p style="text-align: center; margin-top: 1rem;">
+            Déjà un compte ?
+            <a href="/login">Se connecter</a>
+        </p>
+
+        <p style="text-align: center; margin-top: 0.5rem;">
+            <a href="/" role="button" class="outline">← Retour à l'accueil</a>
+        </p>
+    </article>
+</main>
+
+<script>
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const successMessage = document.getElementById('success-message');
+    const successText = document.getElementById('success-text');
+
+    // Toggle entre client existant et nouveau client
+    document.getElementById('radio-existing').addEventListener('change', () => {
+        document.getElementById('existing-client-form').style.display = 'block';
+        document.getElementById('new-client-form').style.display = 'none';
+    });
+
+    document.getElementById('radio-new').addEventListener('change', () => {
+        document.getElementById('existing-client-form').style.display = 'none';
+        document.getElementById('new-client-form').style.display = 'block';
+    });
+
+    // Fonction d'inscription
+    async function handleRegister() {
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.textContent = 'Création en cours...';
+
+        // Cache les messages
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+
+        try {
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password-confirm').value;
+
+            if (!login || !password) {
+                throw new Error('Veuillez remplir tous les champs');
+            }
+
+            if (password !== passwordConfirm) {
+                throw new Error('Les mots de passe ne correspondent pas');
+            }
+
+            const clientChoice = document.querySelector('input[name="client-choice"]:checked').value;
+            let clientId;
+
+            if (clientChoice === 'existing') {
+                clientId = document.getElementById('existing-client-id').value;
+                if (!clientId) {
+                    throw new Error('Veuillez saisir l\'ID du client');
+                }
+            } else {
+                // Créer un nouveau client
+                const firstName = document.getElementById('new-client-firstname').value;
+                const lastName = document.getElementById('new-client-lastname').value;
+
+                if (!firstName || !lastName) {
+                    throw new Error('Veuillez remplir le prénom et le nom');
+                }
+
+                // Appel API pour créer le client
+                const clientResponse = await fetch('/api/clients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ firstName, lastName })
+                });
+
+                if (!clientResponse.ok) {
+                    throw new Error('Erreur lors de la création du client');
+                }
+
+                const clientData = await clientResponse.json();
+                clientId = clientData.id;
+            }
+
+            // Appel API /auth/register
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ login, password, clientId })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erreur lors de l\'inscription');
+            }
+
+            // Récupère le token JWT
+            const data = await response.json();
+            const token = data.token;
+            localStorage.setItem('jwt_token', token);
+
+            // Affiche message de succès
+            successText.textContent = 'Compte créé avec succès ! Redirection...';
+            successMessage.style.display = 'block';
+
+            // Redirige vers la page d'accueil après 1 seconde
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+
+        } catch (error) {
+            // Affiche l'erreur
+            errorText.textContent = error.message;
+            errorMessage.style.display = 'block';
+
+            // Réactive le bouton
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute('aria-busy');
+            submitBtn.textContent = 'Créer mon compte';
+        }
+    }
+</script>
+</body>
+</html>

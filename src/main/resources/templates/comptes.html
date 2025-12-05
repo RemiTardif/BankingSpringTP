@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking App - Comptes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/js/app.js"></script>
+</head>
+<body>
+<main class="container" x-data="accountsData()">
+    <nav>
+        <ul>
+            <li><a href="/" role="button" class="outline">← Retour aux clients</a></li>
+        </ul>
+    </nav>
+
+    <hgroup>
+        <h1>Comptes du client</h1>
+        <p>Gestion des comptes bancaires</p>
+    </hgroup>
+
+    <article x-show="loading" aria-busy="true">
+        Chargement des comptes...
+    </article>
+
+    <article x-show="error" style="background-color: var(--pico-del-color);">
+        <p x-text="error"></p>
+    </article>
+
+    <!-- Formulaire de création -->
+    <article x-show="!loading && !error">
+        <h2>Créer un nouveau compte</h2>
+        <form @submit.prevent="createAccount()">
+            <div class="grid">
+                <!-- Nom du compte -->
+                <label>
+                    Nom du compte
+                    <input
+                            type="text"
+                            x-model="newAccount.name"
+                            required
+                            placeholder="Ex: Compte Courant Principal"
+                            :disabled="creating">
+                </label>
+
+                <!-- Type de compte -->
+                <label>
+                    Type de compte
+                    <select x-model="newAccount.type" required :disabled="creating">
+                        <option value="">Sélectionner un type</option>
+                        <option value="CHECKING">Compte Courant</option>
+                        <option value="SAVINGS">Livret A</option>
+                        <option value="PEA">PEA</option>
+                        <option value="BUSINESS">Compte Professionnel</option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Solde initial -->
+            <label>
+                Solde initial (€)
+                <input
+                        type="number"
+                        x-model="newAccount.solde"
+                        step="0.01"
+                        min="0"
+                        required
+                        placeholder="0.00"
+                        :disabled="creating">
+            </label>
+
+            <!-- Bouton submit -->
+            <button type="submit" :disabled="creating" :aria-busy="creating">
+                <span x-show="!creating">Créer le compte</span>
+                <span x-show="creating">Création en cours...</span>
+            </button>
+        </form>
+    </article>
+
+    <!-- Liste des comptes -->
+    <article x-show="!loading && !error">
+        <h2>Liste des comptes</h2>
+
+        <!-- Table si des comptes existent -->
+        <figure x-show="accounts.length > 0">
+            <table role="grid">
+                <thead>
+                <tr>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Solde</th>
+                </tr>
+                </thead>
+                <tbody>
+                <template x-for="account in accounts" :key="account.id">
+                    <tr>
+                        <td x-text="account.name"></td>
+                        <td x-text="formatType(account.type)"></td>
+                        <td>
+                            <strong x-text="formatCurrency(account.solde)"></strong>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+        </figure>
+
+        <!-- Message si aucun compte -->
+        <p x-show="accounts.length === 0" style="text-align: center; color: var(--pico-muted-color);">
+            Ce client n'a aucun compte. Créez-en un ci-dessus !
+        </p>
+    </article>
+</main>
+</body>
+</html>

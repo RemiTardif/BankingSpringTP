@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-users-table
+      author: ton_nom
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: login
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: password
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: client_id
+                  type: VARCHAR(26)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+        # Foreign key vers clients
+        - addForeignKeyConstraint:
+            baseTableName: users
+            baseColumnNames: client_id
+            constraintName: fk_users_client
+            referencedTableName: clients
+            referencedColumnNames: id
+            onDelete: CASCADE
